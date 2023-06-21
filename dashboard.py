@@ -1,9 +1,6 @@
 from time import sleep
 import paho.mqtt.client as mqtt
 import sys
-# from PyQt6.QtWidgets import (
-#     QApplication, QWidget
-# )
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from collections import deque
