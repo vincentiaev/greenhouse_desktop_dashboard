@@ -2,6 +2,7 @@ from time import sleep
 import paho.mqtt.client as mqtt
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
 from matplotlib.animation import FuncAnimation
 from collections import deque
 from datetime import datetime
@@ -11,9 +12,10 @@ topicpub_hum = "4170/dht11/hum"
 topicpub_soil = "4170/soil"
 topicpub_ldr = "4170/ldr"
 topicpub_flow = "4170/flow"
+topicpub_relay = "btnState"
 
 broker = "192.168.41.70"
-client = mqtt.Client("mkiuygfdserthjk")
+client = mqtt.Client("adsadw23445653")
 
 temperature_data = deque(maxlen=5)
 humidity_data = deque(maxlen=5)
@@ -24,10 +26,10 @@ current_times = deque(maxlen=5)
 
 plt.rcParams['toolbar'] = 'None'
 
-fig, ((axflow, axLDR), (axDHT, axSoil), (axDHTgauge, axSoilGauge)) = plt.subplots(3, 2, figsize=(16, 10))
-plt.subplots_adjust(top=0.923,
+fig, ((axflow, axLDR), (axDHT, axSoil), (axDHTgauge, axSoilGauge)) = plt.subplots(3, 2, figsize=(18, 10))
+plt.subplots_adjust(top=0.830,
                     bottom=0.058,
-                    left=0.11,
+                    left=0.09,
                     right=0.978,
                     hspace=0.487,
                     wspace=0.2)
@@ -46,7 +48,7 @@ def update_soil():
     axSoil.plot(current_times, soil_data, "ro-")
     axSoil.set_xlabel('Time')
     axSoil.set_ylabel('Soil Moisture')
-    axSoil.set_title('Soil Sensor Data')
+    axSoil.set_title('Soil Moisture Sensor Data')
     plt.pause(0.1)
 
 def update_LDR():
@@ -80,7 +82,7 @@ def update_flow():
 
 def update_dht_gauge():
     axDHTgauge.clear() 
-    axDHTgauge.set_title('Temperature Sensor')
+    axDHTgauge.set_title('Temperature')
     axDHTgauge.set_xlim(0, 50)  
     axDHTgauge.set_ylim(0, 1)  
     axDHTgauge.set_xticks([])
@@ -92,7 +94,6 @@ def update_dht_gauge():
     
 def update_soil_gauge():
     axSoilGauge.clear()
-    axSoilGauge.set_title('Soil Moisture Sensor')
     axSoilGauge.set_xlim(0, 100)
     axSoilGauge.set_ylim(0, 1)
     axSoilGauge.set_xticks([])
@@ -131,6 +132,17 @@ def on_message(client, userdata, message):
         flow_data.append(data)
         # print(flow_data)
         update_flow()
+
+def publish_message(message):
+    client.publish(topicpub_relay, message)
+
+button_on_ax = plt.axes([0.51, 0.87, 0.1, 0.05])
+button_on = Button(button_on_ax, 'Nyalakan Sprinkler')
+button_on.on_clicked(lambda event: publish_message("1"))
+
+button_off_ax = plt.axes([0.4, 0.87, 0.1, 0.05])
+button_off = Button(button_off_ax, 'Matikan Sprinkler')
+button_off.on_clicked(lambda event: publish_message("0"))
 
 client.connect(broker)
 client.subscribe(topicpub_temp)
